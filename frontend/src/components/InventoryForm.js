@@ -301,6 +301,10 @@ export default function InventoryForm() {
     }
   }, [isVoidMode]);
 
+  const handleFinishVoid = useCallback(() => {
+    setIsVoidMode(false);
+  }, []);
+  
   useEffect(() => {
     const handleKeyDown = (event) => {
       // Defensive check to prevent TypeError
@@ -1201,6 +1205,8 @@ export default function InventoryForm() {
         }
         .ui-button-void { background-color: #FF9800; color: #fff; }
         .ui-button-void.active { background-color: #F57C00; }
+        .ui-button-finish { background-color: #9E9E9E; color: #fff; }
+        .ui-button-finish:hover { background-color: #757575; }
         .qty-value {
           min-width: 24px;
           text-align: center;
@@ -1320,32 +1326,36 @@ export default function InventoryForm() {
                         <tr key={item.id}>
                           <td>{item.name}</td>
                           <td>
-                            <div className="qty-controls">
-                              <button
-                                className="qty-button"
-                                title="Decrease"
-                                disabled={!isVoidMode}
-                                onClick={() => handleAdjustQuantity(item.id, -1)}
-                              >
-                                <FaMinus />
-                              </button>
+                            {isVoidMode ? (
+                              <div className="qty-controls">
+                                <button
+                                  className="qty-button"
+                                  title="Decrease"
+                                  onClick={() => handleAdjustQuantity(item.id, -1)}
+                                >
+                                  <FaMinus />
+                                </button>
+                                <span className="qty-value">{item.quantity}</span>
+                                <button
+                                  className="qty-button"
+                                  title="Increase"
+                                  onClick={() => handleAdjustQuantity(item.id, +1)}
+                                >
+                                  <FaPlus />
+                                </button>
+                              </div>
+                            ) : (
                               <span className="qty-value">{item.quantity}</span>
-                              <button
-                                className="qty-button"
-                                title="Increase"
-                                disabled={!isVoidMode}
-                                onClick={() => handleAdjustQuantity(item.id, +1)}
-                              >
-                                <FaPlus />
-                              </button>
-                            </div>
+                            )}
                           </td>
                           <td>₱{item.price.toFixed(2)}</td>
                           <td>₱{(item.price * item.quantity).toFixed(2)}</td>
                           <td>
-                            <button className="ui-button ui-button-clear" disabled={!isVoidMode} onClick={() => handleRemoveFromCart(item.id)}>
-                              <FaBan />
-                            </button>
+                            {isVoidMode ? (
+                              <button className="ui-button ui-button-clear" onClick={() => handleRemoveFromCart(item.id)}>
+                                <FaBan />
+                              </button>
+                            ) : null}
                           </td>
                         </tr>
                       ))}
@@ -1368,13 +1378,33 @@ export default function InventoryForm() {
 
         
           <div className="ui-payment-actions">
+            {!isVoidMode && (
+              <button
+                className={`ui-button ui-button-void`}
+                onClick={handleToggleVoid}
+                data-action="void"
+              >
+                Void
+              </button>
+            )}
+            {isVoidMode && (
+              <>
                 <button
-              className={`ui-button ui-button-void${isVoidMode ? ' active' : ''}`}
-              onClick={handleToggleVoid}
-              data-action="void"
-            >
-              Void
-            </button>
+                  className={`ui-button ui-button-void active`}
+                  disabled
+                  data-action="void-active"
+                >
+                  Void
+                </button>
+                <button
+                  className="ui-button ui-button-finish"
+                  onClick={handleFinishVoid}
+                  data-action="finish-void"
+                >
+                  Finish
+                </button>
+              </>
+            )}
             <button className="ui-button ui-button-success" onClick={handlePrint} data-action="print" disabled={cart.length === 0}>
               <FaPrint /> Print
             </button>
