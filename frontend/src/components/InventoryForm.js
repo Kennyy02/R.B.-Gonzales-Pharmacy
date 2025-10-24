@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { apiUrl, DELETE_PASSWORD } from '../config';
-import { FaBan, FaPrint, FaShoppingCart } from 'react-icons/fa';
+import { FaBan, FaPrint, FaShoppingCart, FaPlus, FaMinus } from 'react-icons/fa';
 import ReceiptModal from './ReceiptModal';
 import PaymentModal from './PaymentModal';
 
@@ -137,6 +137,56 @@ export default function InventoryForm() {
       )
     );
     setCart(cart.filter(item => item.id !== productId));
+  };
+  
+  const handleAdjustQuantity = (productId, delta) => {
+    const providedPassword = window.prompt('Enter password to adjust quantity:');
+    if (!providedPassword) return;
+    if (String(providedPassword) !== String(DELETE_PASSWORD || '')) {
+      alert('Incorrect password.');
+      return;
+    }
+
+    const cartItemIndex = cart.findIndex((item) => String(item.id) === String(productId));
+    if (cartItemIndex === -1) return;
+
+    const productIndex = products.findIndex((p) => String(p.id) === String(productId));
+    if (productIndex === -1) return;
+
+    const product = products[productIndex];
+    const item = cart[cartItemIndex];
+
+    if (delta > 0) {
+      if ((product.quantity || 0) < delta) {
+        alert(`Not enough stock for ${getFullProductName(product)}. Available: ${product.quantity || 0}`);
+        return;
+      }
+      const newCart = [...cart];
+      newCart[cartItemIndex] = { ...item, quantity: item.quantity + delta };
+      const newProducts = products.map((p, idx) => (
+        idx === productIndex ? { ...p, quantity: (p.quantity || 0) - delta } : p
+      ));
+      setCart(newCart);
+      setProducts(newProducts);
+    } else if (delta < 0) {
+      const absDelta = Math.abs(delta);
+      if (item.quantity <= absDelta) {
+        const newProducts = products.map((p, idx) => (
+          idx === productIndex ? { ...p, quantity: (p.quantity || 0) + item.quantity } : p
+        ));
+        const newCart = cart.filter((ci) => String(ci.id) !== String(productId));
+        setProducts(newProducts);
+        setCart(newCart);
+      } else {
+        const newCart = [...cart];
+        newCart[cartItemIndex] = { ...item, quantity: item.quantity - absDelta };
+        const newProducts = products.map((p, idx) => (
+          idx === productIndex ? { ...p, quantity: (p.quantity || 0) + absDelta } : p
+        ));
+        setProducts(newProducts);
+        setCart(newCart);
+      }
+    }
   };
 
   const handleCloseReceiptModal = () => {
@@ -1115,6 +1165,35 @@ export default function InventoryForm() {
         .ui-button-clear:hover {
           background-color: #E53935;
         }
+          
+        .qty-controls {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          justify-content: center;
+        }
+        .qty-button {
+          background-color: #607D8B;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          width: 28px;
+          height: 28px;
+          padding: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: none;
+        }
+        .qty-button:hover {
+          background-color: #546E7A;
+        }
+        .qty-value {
+          min-width: 24px;
+          text-align: center;
+          display: inline-block;
+          font-weight: 600;
+        }
 
         .empty-cart-message p {
             font-size: 1rem;
@@ -1227,7 +1306,25 @@ export default function InventoryForm() {
                       {cart.map((item) => (
                         <tr key={item.id}>
                           <td>{item.name}</td>
-                          <td>{item.quantity}</td>
+                          <td>
+                            <div className="qty-controls">
+                              <button
+                                className="qty-button"
+                                title="Decrease"
+                                onClick={() => handleAdjustQuantity(item.id, -1)}
+                              >
+                                <FaMinus />
+                              </button>
+                              <span className="qty-value">{item.quantity}</span>
+                              <button
+                                className="qty-button"
+                                title="Increase"
+                                onClick={() => handleAdjustQuantity(item.id, +1)}
+                              >
+                                <FaPlus />
+                              </button>
+                            </div>
+                          </td>
                           <td>₱{item.price.toFixed(2)}</td>
                           <td>₱{(item.price * item.quantity).toFixed(2)}</td>
                           <td>
