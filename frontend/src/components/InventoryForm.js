@@ -1350,6 +1350,7 @@ export default function InventoryForm() {
                                 <span className="qty-value">{item.quantity}</span>
                               </div>
                             )}
+                              </td>
                           <td>₱{item.price.toFixed(2)}</td>
                           <td>₱{(item.price * item.quantity).toFixed(2)}</td>
                           <td>
