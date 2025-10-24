@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { apiUrl, DELETE_PASSWORD } from '../config';
 import { FaBan, FaPrint, FaShoppingCart, FaPlus, FaMinus } from 'react-icons/fa';
+import EditQuantityModal from './EditQuantityModal';
 import ReceiptModal from './ReceiptModal';
 import PaymentModal from './PaymentModal';
 
@@ -46,6 +47,8 @@ export default function InventoryForm() {
   const [currentReceipt, setCurrentReceipt] = useState(null);
   const scanInputRef = useRef(null);
   const [scanQuantity, setScanQuantity] = useState(1);
+  const [isEditQtyOpen, setIsEditQtyOpen] = useState(false);
+  const [editQtyItem, setEditQtyItem] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -187,6 +190,59 @@ export default function InventoryForm() {
         setCart(newCart);
       }
     }
+  };
+
+  const openEditQuantityModal = (productId) => {
+    const item = cart.find((ci) => String(ci.id) === String(productId));
+    if (!item) return;
+    setEditQtyItem(item);
+    setIsEditQtyOpen(true);
+  };
+
+  const handleConfirmEditQuantity = ({ newQuantity, password }) => {
+    if (String(password) !== String(DELETE_PASSWORD || '')) {
+      alert('Incorrect password.');
+      return;
+    }
+    if (!editQtyItem) return;
+
+    const productIndex = products.findIndex((p) => String(p.id) === String(editQtyItem.id));
+    if (productIndex === -1) return;
+
+    const currentCartQty = editQtyItem.quantity;
+    const delta = newQuantity - currentCartQty;
+
+    if (delta === 0) {
+      setIsEditQtyOpen(false);
+      setEditQtyItem(null);
+      return;
+    }
+
+    // Validate stock if increasing
+    if (delta > 0) {
+      const product = products[productIndex];
+      if ((product.quantity || 0) < delta) {
+        alert(`Not enough stock. Available: ${product.quantity || 0}`);
+        return;
+      }
+    }
+
+    // Apply change to cart and products
+    setCart((prev) => prev.map((ci) => (
+      String(ci.id) === String(editQtyItem.id) ? { ...ci, quantity: newQuantity } : ci
+    )));
+    setProducts((prev) => prev.map((p, idx) => {
+      if (idx !== productIndex) return p;
+      return { ...p, quantity: (p.quantity || 0) - delta };
+    }));
+
+    // If new quantity is 0 or less (shouldn't happen since min is 2 in modal), safeguard remove
+    if (newQuantity <= 0) {
+      setCart((prev) => prev.filter((ci) => String(ci.id) !== String(editQtyItem.id)));
+    }
+
+    setIsEditQtyOpen(false);
+    setEditQtyItem(null);
   };
 
   const handleCloseReceiptModal = () => {
@@ -1188,6 +1244,13 @@ export default function InventoryForm() {
         .qty-button:hover {
           background-color: #546E7A;
         }
+        .qty-button.edit {
+          background-color: #FFB300;
+          color: #263238;
+        }
+        .qty-button.edit:hover {
+          background-color: #FFA000;
+        }
         .qty-value {
           min-width: 24px;
           text-align: center;
@@ -1323,6 +1386,13 @@ export default function InventoryForm() {
                               >
                                 <FaPlus />
                               </button>
+                              <button
+                                className="qty-button edit"
+                                title="Edit quantity"
+                                onClick={() => openEditQuantityModal(item.id)}
+                              >
+                                <FaEdit />
+                              </button>
                             </div>
                           </td>
                           <td>₱{item.price.toFixed(2)}</td>
@@ -1379,6 +1449,17 @@ export default function InventoryForm() {
           // Print functionality is handled within the modal
         }}
         onSave={handleSaveReceipt}
+      />
+      <EditQuantityModal
+        isOpen={isEditQtyOpen}
+        item={editQtyItem}
+        availableToAdd={(() => {
+          if (!editQtyItem) return 0;
+          const p = products.find((pp) => String(pp.id) === String(editQtyItem.id));
+          return p ? (p.quantity || 0) : 0;
+        })()}
+        onClose={() => { setIsEditQtyOpen(false); setEditQtyItem(null); }}
+        onConfirm={handleConfirmEditQuantity}
       />
     </>
   );
