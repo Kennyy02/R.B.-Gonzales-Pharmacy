@@ -1207,6 +1207,7 @@ export default function InventoryForm() {
         .ui-button-void.active { background-color: #F57C00; }
         .ui-button-finish { background-color: #9E9E9E; color: #fff; }
         .ui-button-finish:hover { background-color: #757575; }
+        .qty-controls.qty-readonly { min-width: 120px; justify-content: center; }
         .qty-value {
           min-width: 24px;
           text-align: center;
@@ -1326,7 +1327,7 @@ export default function InventoryForm() {
                         <tr key={item.id}>
                           <td>{item.name}</td>
                           <td>
-                            {isVoidMode ? (
+                           {isVoidMode ? (
                               <div className="qty-controls">
                                 <button
                                   className="qty-button"
@@ -1345,9 +1346,10 @@ export default function InventoryForm() {
                                 </button>
                               </div>
                             ) : (
-                              <span className="qty-value">{item.quantity}</span>
+                              <div className="qty-controls qty-readonly">
+                                <span className="qty-value">{item.quantity}</span>
+                              </div>
                             )}
-                          </td>
                           <td>₱{item.price.toFixed(2)}</td>
                           <td>₱{(item.price * item.quantity).toFixed(2)}</td>
                           <td>
