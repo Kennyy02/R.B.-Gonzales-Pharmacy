@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { apiUrl, DELETE_PASSWORD } from '../config';
-import { FaBan, FaPrint, FaShoppingCart, FaPlus, FaMinus, FaEdit } from 'react-icons/fa';
+import { FaBan, FaPrint, FaShoppingCart, FaPlus, FaMinus } from 'react-icons/fa';
+import { Edit3 } from 'lucide-react';
 import EditQuantityModal from './EditQuantityModal';
 import ReceiptModal from './ReceiptModal';
 import PaymentModal from './PaymentModal';
@@ -1391,7 +1392,7 @@ export default function InventoryForm() {
                                 title="Edit quantity"
                                 onClick={() => openEditQuantityModal(item.id)}
                               >
-                                <FaEdit />
+                                <Edit3 size={16} />
                               </button>
                             </div>
                           </td>
