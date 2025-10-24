@@ -1071,6 +1071,13 @@ export default function InventoryForm() {
         }
         
         
+        /* Align table headers to match their column value alignment */
+        .simple-cart-table thead th:nth-child(1) { text-align: left; }
+        .simple-cart-table thead th:nth-child(2) { text-align: center; }
+        .simple-cart-table thead th:nth-child(3) { text-align: right; }
+        .simple-cart-table thead th:nth-child(4) { text-align: right; }
+        .simple-cart-table thead th:nth-child(5) { text-align: center; }
+        
         /* Column alignment and widths */
         .simple-cart-table th:nth-child(1), .simple-cart-table td:nth-child(1) { width: 52%; text-align: left; }
         .simple-cart-table th:nth-child(2), .simple-cart-table td:nth-child(2) { width: 12%; text-align: center; }
