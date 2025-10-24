@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { apiUrl, DELETE_PASSWORD } from '../config';
-import { FaBan, FaPrint, FaShoppingCart, FaPlus, FaMinus } from 'react-icons/fa';
+import { FaBan, FaPrint, FaShoppingCart, FaPlus, FaMinus, FaEdit } from 'react-icons/fa';
 import EditQuantityModal from './EditQuantityModal';
 import ReceiptModal from './ReceiptModal';
 import PaymentModal from './PaymentModal';
