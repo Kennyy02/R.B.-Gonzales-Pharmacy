@@ -1081,7 +1081,7 @@ export default function InventoryForm() {
         }
         
         /* Align table headers to match their column value alignment */
-.simple-cart-table thead th:nth-child(1) { width: 80%; text-align: left; }
+.simple-cart-table thead th:nth-child(1) { width: 85%; text-align: left; }
 .simple-cart-table thead th:nth-child(2) { width: 32%; text-align: center; } /* QTY */
 .simple-cart-table thead th:nth-child(3) { width: 32%; text-align: right; }  /* PRICE */
 .simple-cart-table thead th:nth-child(4) { width: 32%; text-align: right; }  /* SUBTOTAL */
