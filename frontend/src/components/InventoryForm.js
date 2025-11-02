@@ -1050,8 +1050,18 @@ export default function InventoryForm() {
           border-collapse: collapse;
           table-layout: fixed;
         }
-        .simple-cart-table thead { display: table-header-group; }
-        .simple-cart-table tbody { display: table-row-group; }
+        
+        .simple-cart-table thead { 
+          display: table-header-group; 
+        }
+        .simple-cart-table tbody { 
+          display: table-row-group; 
+        }
+        .simple-cart-table thead tr,
+        .simple-cart-table tbody tr { 
+          display: table-row; 
+          width: 100%;
+        }
         .simple-cart-table tr { display: table-row; }
 
         .simple-cart-table th,
