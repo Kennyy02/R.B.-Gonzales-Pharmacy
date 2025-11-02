@@ -1082,14 +1082,14 @@ export default function InventoryForm() {
         
         /* Align table headers to match their column value alignment */
 .simple-cart-table thead th:nth-child(1) { width: 85%; text-align: left; }
-.simple-cart-table thead th:nth-child(2) { width: 31%; text-align: center; } /* QTY */
+.simple-cart-table thead th:nth-child(2) { width: 21%; text-align: center; } /* QTY */
 .simple-cart-table thead th:nth-child(3) { width: 34%; text-align: right; }  /* PRICE */
 .simple-cart-table thead th:nth-child(4) { width: 34%; text-align: right; }  /* SUBTOTAL */
 .simple-cart-table thead th:nth-child(5) { width: 20%; text-align: center; }
 
 /* Column alignment and widths - Ensure the body cells align */
 .simple-cart-table td:nth-child(1) { width: 80%; text-align: left; }
-.simple-cart-table td:nth-child(2) { width: 30%; text-align: center; } /* QTY */
+.simple-cart-table td:nth-child(2) { width: 20%; text-align: center; } /* QTY */
 .simple-cart-table td:nth-child(3) { width: 30%; text-align: right; }  /* PRICE */
 .simple-cart-table td:nth-child(4) { width: 30%; text-align: right; }  /* SUBTOTAL */
 .simple-cart-table td:nth-child(5) { width: 22%; text-align: center; }
