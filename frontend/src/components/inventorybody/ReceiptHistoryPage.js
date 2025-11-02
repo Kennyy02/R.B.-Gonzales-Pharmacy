@@ -14,6 +14,7 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
   
   // Search and Pagination states
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'receipt', 'customer', 'date'
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -40,20 +41,30 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
     fetchReceipts();
   }, []);
 
-  // Filter receipts based on search term
+  // Filter receipts based on search term and search type
   const filteredReceipts = receipts.filter((receipt) => {
+    if (!searchTerm) return true;
+    
     const searchLower = searchTerm.toLowerCase();
     const receiptNumber = (receipt.receipt_number || receipt.id).toString().toLowerCase();
     const customerName = (receipt.customer_name || 'guest').toLowerCase();
     const date = new Date(receipt.transaction_date).toLocaleString().toLowerCase();
-    const netPay = parseFloat(receipt.net_pay).toFixed(2);
     
-    return (
-      receiptNumber.includes(searchLower) ||
-      customerName.includes(searchLower) ||
-      date.includes(searchLower) ||
-      netPay.includes(searchLower)
-    );
+    switch (searchType) {
+      case 'receipt':
+        return receiptNumber.includes(searchLower);
+      case 'customer':
+        return customerName.includes(searchLower);
+      case 'date':
+        return date.includes(searchLower);
+      case 'all':
+      default:
+        return (
+          receiptNumber.includes(searchLower) ||
+          customerName.includes(searchLower) ||
+          date.includes(searchLower)
+        );
+    }
   });
 
   // Pagination logic
@@ -250,24 +261,38 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
         <>
           {/* Search Bar */}
           <div className="search-container">
-            <div className="search-input-wrapper">
-              <FaSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search by receipt number, customer, date, or amount..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="clear-search-button"
-                >
-                  ✕
-                </button>
-              )}
+            <div className="search-section">
+              <select 
+                value={searchType} 
+                onChange={(e) => setSearchType(e.target.value)}
+                className="search-type-select"
+              >
+                <option value="all">All Fields</option>
+                <option value="receipt">Receipt Number</option>
+                <option value="customer">Customer Name</option>
+                <option value="date">Date</option>
+              </select>
+              
+              <div className="search-input-wrapper">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder={`Search by ${searchType === 'all' ? 'any field' : searchType}...`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="clear-search-button"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
+            
             <div className="items-per-page">
               <label>Show:</label>
               <select value={itemsPerPage} onChange={handleItemsPerPageChange}>
@@ -444,14 +469,39 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
           justify-content: space-between;
           align-items: center;
           margin-bottom: 20px;
-          gap: 15px;
+          gap: 20px;
           flex-wrap: wrap;
+        }
+
+        .search-section {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          flex: 0 1 auto;
+          max-width: 600px;
+        }
+
+        .search-type-select {
+          padding: 12px 15px;
+          border: 2px solid #ddd;
+          border-radius: 8px;
+          font-size: 0.95em;
+          cursor: pointer;
+          background-color: white;
+          transition: border-color 0.3s ease;
+          min-width: 150px;
+        }
+
+        .search-type-select:focus {
+          outline: none;
+          border-color: #167bb9;
         }
 
         .search-input-wrapper {
           position: relative;
           flex: 1;
-          min-width: 300px;
+          min-width: 250px;
+          max-width: 400px;
         }
 
         .search-icon {
@@ -501,6 +551,8 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
           gap: 8px;
           font-size: 0.95em;
           color: #555;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
 
         .items-per-page select {
@@ -836,12 +888,24 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
             align-items: stretch;
           }
 
+          .search-section {
+            flex-direction: column;
+            max-width: 100%;
+            width: 100%;
+          }
+
+          .search-type-select {
+            width: 100%;
+          }
+
           .search-input-wrapper {
             min-width: 100%;
+            max-width: 100%;
           }
 
           .items-per-page {
             justify-content: center;
+            width: 100%;
           }
 
           .receipts-table th,
