@@ -1089,9 +1089,9 @@ export default function InventoryForm() {
 
 /* Column alignment and widths - Ensure the body cells align */
 .simple-cart-table td:nth-child(1) { width: 80%; text-align: left; }
-.simple-cart-table td:nth-child(2) { width: 32%; text-align: center; } /* QTY */
-.simple-cart-table td:nth-child(3) { width: 33%; text-align: right; }  /* PRICE */
-.simple-cart-table td:nth-child(4) { width: 33%; text-align: right; }  /* SUBTOTAL */
+.simple-cart-table td:nth-child(2) { width: 28%; text-align: center; } /* QTY */
+.simple-cart-table td:nth-child(3) { width: 28%; text-align: right; }  /* PRICE */
+.simple-cart-table td:nth-child(4) { width: 28%; text-align: right; }  /* SUBTOTAL */
 .simple-cart-table td:nth-child(5) { width: 22%; text-align: center; }
 
         /* Clamp long item names to a single line with ellipsis */
