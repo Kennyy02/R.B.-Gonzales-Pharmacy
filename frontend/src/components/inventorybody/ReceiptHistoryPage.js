@@ -48,7 +48,8 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
     const searchLower = searchTerm.toLowerCase();
     const receiptNumber = (receipt.receipt_number || receipt.id).toString().toLowerCase();
     const customerName = (receipt.customer_name || 'guest').toLowerCase();
-    const date = new Date(receipt.transaction_date).toLocaleString().toLowerCase();
+    const dateWithTime = new Date(receipt.transaction_date).toLocaleString().toLowerCase();
+    const dateOnly = new Date(receipt.transaction_date).toLocaleDateString().toLowerCase();
     
     switch (searchType) {
       case 'receipt':
@@ -56,13 +57,13 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
       case 'customer':
         return customerName.includes(searchLower);
       case 'date':
-        return date.includes(searchLower);
+        return dateOnly.includes(searchLower);
       case 'all':
       default:
         return (
           receiptNumber.includes(searchLower) ||
           customerName.includes(searchLower) ||
-          date.includes(searchLower)
+          dateWithTime.includes(searchLower)
         );
     }
   });
