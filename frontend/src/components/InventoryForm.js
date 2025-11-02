@@ -1226,7 +1226,7 @@ export default function InventoryForm() {
         .ui-button-finish:hover { background-color: #757575; }
         .qty-controls.qty-readonly { min-width: 120px; justify-content: center; }
         .qty-value {
-          min-width: 24px;
+          min-width: 44px;
           text-align: center;
           display: inline-block;
           font-weight: 600;
