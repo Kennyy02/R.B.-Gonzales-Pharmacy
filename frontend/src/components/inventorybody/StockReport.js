@@ -426,7 +426,7 @@ const StockManagement = () => {
         </div>
       )}
 
-      {viewMode === 'view' && (
+            {viewMode === 'view' && (
         <div className="products-by-category card">
           <h2>All Products by Category</h2>
           <div className="search-bar">
@@ -466,7 +466,7 @@ const StockManagement = () => {
                         </tr>
                       </thead>
                       <tbody>
-                    {productsInCategory.map(stock => (
+                        {productsInCategory.map(stock => (
                           <tr key={stock.id}>
                             <td className="image-cell">
                               {stock.imageUrl ? (
