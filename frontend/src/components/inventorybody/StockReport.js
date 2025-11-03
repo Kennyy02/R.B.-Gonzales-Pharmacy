@@ -448,39 +448,58 @@ const StockManagement = () => {
               return (
                 <div key={category} className="category-box">
                   <h3>{category} Products ({productsInCategory.length})</h3>
-                  <div className="product-grid">
+                  <div className="table-container">
+                    <table className="product-table">
+                      <thead>
+                        <tr>
+                          <th>Image</th>
+                          <th>Medicine ID</th>
+                          <th>Brand Name</th>
+                          <th>Medicine Name</th>
+                          <th>Generic Name</th>
+                          <th>Supplier</th>
+                          <th>Barcode</th>
+                          <th>Price</th>
+                          <th>Quantity</th>
+                          <th>Delivery Date</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
                     {productsInCategory.map(stock => (
-                      <div key={stock.id} className="product-card">
-                        <div className="product-image-container">
-                          {stock.imageUrl ? (
-                            <img
-                              src={stock.imageUrl}
-                              alt={stock.medicineId}
-                              className="product-image"
-                            />
-                          ) : (
-                            <div className="no-image-placeholder">No Image</div>
-                          )}
-                        </div>
-                        <div className="product-details">
-                          <p className="product-name">{stock.brandName} <span className="generic-name">({stock.medicineName})</span></p>
-                          <p className="product-price">Price: ₱{parseFloat(stock.price).toFixed(2)}</p>
-                          <p className="product-quantity">Quantity: {stock.quantity}</p>
-                          <p className="product-id">ID: {stock.medicineId}</p>
-                          <p className="product-supplier">Supplier: {stock.supplierName}</p>
-                          <p className="product-barcode">Barcode: {stock.barcode}</p>
-                          <p className="product-delivery-date">Delivered: {stock.deliveryDate ? new Date(stock.deliveryDate).toLocaleDateString() : 'N/A'}</p>
-                        </div>
-                        <div className="product-actions">
-                          <button onClick={() => handleEdit(stock.id)} title="Edit" className="icon-btn primary">
-                            <FaEdit /> Edit
-                          </button>
-                          <button onClick={() => handleDelete(stock.id)} title="Delete" className="icon-btn error">
-                            <FaTrash /> Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                          <tr key={stock.id}>
+                            <td className="image-cell">
+                              {stock.imageUrl ? (
+                                <img
+                                  src={stock.imageUrl}
+                                  alt={stock.medicineId}
+                                  className="table-product-image"
+                                />
+                              ) : (
+                                <div className="table-no-image">No Image</div>
+                              )}
+                            </td>
+                            <td>{stock.medicineId}</td>
+                            <td className="brand-name-cell">{stock.brandName}</td>
+                            <td>{stock.medicineName}</td>
+                            <td>{stock.genericName}</td>
+                            <td>{stock.supplierName}</td>
+                            <td>{stock.barcode}</td>
+                            <td className="price-cell">₱{parseFloat(stock.price).toFixed(2)}</td>
+                            <td className="quantity-cell">{stock.quantity}</td>
+                            <td>{stock.deliveryDate ? new Date(stock.deliveryDate).toLocaleDateString() : 'N/A'}</td>
+                            <td className="actions-cell">
+                              <button onClick={() => handleEdit(stock.id)} title="Edit" className="icon-btn primary table-btn">
+                                <FaEdit />
+                              </button>
+                              <button onClick={() => handleDelete(stock.id)} title="Delete" className="icon-btn error table-btn">
+                                <FaTrash />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               );
