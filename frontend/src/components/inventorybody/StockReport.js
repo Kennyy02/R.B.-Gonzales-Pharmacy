@@ -992,6 +992,91 @@ const StockManagement = () => {
           gap: 10px;
         }
 
+        .table-container {
+            overflow-x: auto; /* Makes the table scroll horizontally on small screens */
+            margin-top: 20px;
+        }
+.product-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.9em;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            overflow: hidden; /* Ensures border-radius applies to table content */
+        }
+
+        .product-table th, .product-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .product-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .product-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .product-table tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Image Cell Styles */
+        .image-cell {
+            width: 80px; /* Allocate a fixed, small width for the image */
+            text-align: center;
+            padding: 5px 8px; /* Reduce padding for a tighter fit */
+        }
+
+        /* Product Image Styles - **RESIZED** */
+        .table-product-image {
+            width: 50px; /* Fixed width for the image */
+            height: 50px; /* Fixed height for the image */
+            object-fit: cover; /* Ensures the image covers the area without distortion */
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            display: block;
+            margin: 0 auto; /* Center it in the small cell */
+        }
+
+        .table-no-image {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7em;
+            color: #888;
+            background-color: #eee;
+            border-radius: 6px;
+            margin: 0 auto;
+        }
+
+        /* Other Cell Styles */
+        .brand-name-cell { font-weight: 600; color: var(--primary-color); }
+        .price-cell { font-weight: 700; color: var(--success-color); }
+        .quantity-cell { font-weight: 600; color: var(--danger-color); }
+        
+        .actions-cell {
+            width: 100px; /* Keep actions cell fixed width */
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .table-btn {
+          padding: 6px 10px;
+          font-size: 0.9em;
+          border-radius: 6px;
+        }
         .search-bar {
           display: flex;
           align-items: center;
