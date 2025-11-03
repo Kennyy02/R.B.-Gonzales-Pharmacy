@@ -782,7 +782,7 @@ const StockManagement = () => {
         .stock-form, .category-form {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-          gap: 25px;
+          gap: 15px;
         }
 
         .stock-form input[type="text"],
@@ -1007,7 +1007,7 @@ const StockManagement = () => {
         }
 
         .product-table th, .product-table td {
-            padding: 12px 15px;
+            padding: 8px 10px;
             text-align: left;
             border-bottom: 1px solid #f0f0f0;
         }
