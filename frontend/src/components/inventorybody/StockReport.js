@@ -1067,7 +1067,6 @@ const StockManagement = () => {
         .actions-cell {
             width: 100px; /* Keep actions cell fixed width */
             display: flex;
-            gap: 5px;
             justify-content: center;
             align-items: center;
         }
@@ -1171,7 +1170,6 @@ const StockManagement = () => {
         .custom-modal-actions {
             display: flex;
             flex-direction: column;
-            gap: 15px;
             margin-top: 25px;
         }
 
