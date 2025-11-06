@@ -18,6 +18,7 @@ const LoginForm = ({ onLogin }) => { //
     message: '', //
   });
   const navigate = useNavigate(); //
+  const apiUrl = (path) => `https://rbgonzalez-backend-production.up.railway.app/api${path}`;
 
   const handleLogin = async (e) => { //
     e.preventDefault(); //
