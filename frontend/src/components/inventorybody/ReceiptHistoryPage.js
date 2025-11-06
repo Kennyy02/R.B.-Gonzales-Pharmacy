@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { apiUrl } from '../../config';
-import { FaPrint, FaEye } from 'react-icons/fa';
+import { FaPrint, FaEye, FaSearch } from 'react-icons/fa';
 
 export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGoBack }) {
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
-  const [loadingDetails, setLoadingDetails] = useState(false); // New state for details loading
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [error, setError] = useState(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [notificationType, setNotificationType] = useState('success');
+  
+  // Search and Pagination states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'receipt', 'customer', 'date'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Function to fetch all receipts from the backend
   const fetchReceipts = async () => {
@@ -31,15 +37,51 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
     }
   };
 
-
   useEffect(() => {
     fetchReceipts();
   }, []);
 
+  // Filter receipts based on search term and search type
+  const filteredReceipts = receipts.filter((receipt) => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    const receiptNumber = (receipt.receipt_number || receipt.id).toString().toLowerCase();
+    const customerName = (receipt.customer_name || 'guest').toLowerCase();
+    const dateWithTime = new Date(receipt.transaction_date).toLocaleString().toLowerCase();
+    const dateOnly = new Date(receipt.transaction_date).toLocaleDateString().toLowerCase();
+    
+    switch (searchType) {
+      case 'receipt':
+        return receiptNumber.includes(searchLower);
+      case 'customer':
+        return customerName.includes(searchLower);
+      case 'date':
+        return dateOnly.includes(searchLower);
+      case 'all':
+      default:
+        return (
+          receiptNumber.includes(searchLower) ||
+          customerName.includes(searchLower) ||
+          dateWithTime.includes(searchLower)
+        );
+    }
+  });
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentReceipts = filteredReceipts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredReceipts.length / itemsPerPage);
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleViewReceiptDetails = async (receiptId) => {
     try {
-      setLoadingDetails(true); // Set loading for details
+      setLoadingDetails(true);
       const res = await fetch(apiUrl(`/receipts/${receiptId}`));
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -51,7 +93,7 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
       console.error('Error fetching receipt details:', err);
       setError('Failed to load receipt details. Please try again.');
     } finally {
-      setLoadingDetails(false); // Clear loading
+      setLoadingDetails(false);
     }
   };
 
@@ -66,15 +108,57 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
     setNotificationType('success');
   };
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      }
+    }
+    
+    return pageNumbers;
+  };
+
   // Notification Modal Component
   const NotificationModal = ({ message, type, onClose }) => (
     <div className="custom-modal-overlay">
       <div className="custom-modal-content">
         <p className={type === 'error' ? 'error-message-text' : 'success-message-text'}>{message}</p>
-        <button
-          onClick={onClose}
-          className="custom-modal-button"
-        >
+        <button onClick={onClose} className="custom-modal-button">
           OK
         </button>
       </div>
@@ -92,9 +176,8 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
   return (
     <div className="receipt-history-container">
       <h2>Receipt History</h2>
-      {error && (
-        <div className="error-container">{error}</div>
-      )}
+      {error && <div className="error-container">{error}</div>}
+      
       {selectedReceipt ? (
         loadingDetails ? (
           <div className="loading-message">
@@ -146,10 +229,7 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
             <p className="summary-line">VAT Amount: {parseFloat(selectedReceipt.vat_amount).toFixed(2)}</p>
 
             <div className="button-group">
-              <button
-                onClick={handleCloseDetails}
-                className="action-button secondary-button"
-              >
+              <button onClick={handleCloseDetails} className="action-button secondary-button">
                 Close Details
               </button>
               <button
@@ -179,57 +259,152 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
           </div>
         )
       ) : (
-        <div className="table-responsive">
-          <table className="receipts-table">
-            <thead>
-              <tr>
-                <th>Receipt Number</th>
-                <th>Date</th>
-                <th>Customer</th>
-                <th className="text-right">Items (Count)</th>
-                <th className="text-right">Total Qty</th>
-                <th className="text-right">Gross Amount</th>
-                <th className="text-right">Net Pay</th>
-                <th className="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {receipts.length === 0 ? (
+        <>
+          {/* Search Bar */}
+          <div className="search-container">
+            <div className="search-section">
+              <select 
+                value={searchType} 
+                onChange={(e) => setSearchType(e.target.value)}
+                className="search-type-select"
+              >
+                <option value="all">All Fields</option>
+                <option value="receipt">Receipt Number</option>
+                <option value="customer">Customer Name</option>
+                <option value="date">Date</option>
+              </select>
+              
+              <div className="search-input-wrapper">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder={`Search by ${searchType === 'all' ? 'any field' : searchType}...`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="clear-search-button"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <div className="items-per-page">
+              <label>Show:</label>
+              <select value={itemsPerPage} onChange={handleItemsPerPageChange}>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span>per page</span>
+            </div>
+          </div>
+
+          {/* Results Summary */}
+          <div className="results-summary">
+            Showing {filteredReceipts.length === 0 ? 0 : indexOfFirstItem + 1} to{' '}
+            {Math.min(indexOfLastItem, filteredReceipts.length)} of {filteredReceipts.length} receipts
+            {searchTerm && ` (filtered from ${receipts.length} total)`}
+          </div>
+
+          {/* Table */}
+          <div className="table-responsive">
+            <table className="receipts-table">
+              <thead>
                 <tr>
-                  <td colSpan="8" className="no-receipts-message">No receipts found.</td>
+                  <th>Receipt Number</th>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th className="text-right">Items (Count)</th>
+                  <th className="text-right">Total Qty</th>
+                  <th className="text-right">Gross Amount</th>
+                  <th className="text-right">Net Pay</th>
+                  <th className="text-center">Actions</th>
                 </tr>
-              ) : (
-                receipts.map((receipt) => {
-                  const totalItemsCount = receipt.cart?.length || 0;
-                  const totalQuantity = receipt.cart?.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0) || 0;
-                  const grossAmount = (parseFloat(receipt.total_price) || 0).toFixed(2);
+              </thead>
+              <tbody>
+                {currentReceipts.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="no-receipts-message">
+                      {searchTerm ? 'No receipts found matching your search.' : 'No receipts found.'}
+                    </td>
+                  </tr>
+                ) : (
+                  currentReceipts.map((receipt) => {
+                    const totalItemsCount = receipt.cart?.length || 0;
+                    const totalQuantity = receipt.cart?.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0) || 0;
+                    const grossAmount = (parseFloat(receipt.total_price) || 0).toFixed(2);
 
-                  return (
-                    <tr key={receipt.id}>
-                      <td>{receipt.receipt_number || receipt.id}</td>
-                      <td>{new Date(receipt.transaction_date).toLocaleString()}</td>
-                      <td>{receipt.customer_name || 'GUEST'}</td>
-                      <td>{totalItemsCount}</td>
-                      <td>{totalQuantity}</td>
-                      <td>{grossAmount}</td>
-                      <td>{parseFloat(receipt.net_pay).toFixed(2)}</td>
-                      <td className="text-center">
-                        <button
-                          onClick={() => handleViewReceiptDetails(receipt.id)}
-                          className="icon-button view-button"
-                        >
-                          <FaEye /> View
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                    return (
+                      <tr key={receipt.id}>
+                        <td>{receipt.receipt_number || receipt.id}</td>
+                        <td>{new Date(receipt.transaction_date).toLocaleString()}</td>
+                        <td>{receipt.customer_name || 'GUEST'}</td>
+                        <td className="text-right">{totalItemsCount}</td>
+                        <td className="text-right">{totalQuantity}</td>
+                        <td className="text-right">{grossAmount}</td>
+                        <td className="text-right">{parseFloat(receipt.net_pay).toFixed(2)}</td>
+                        <td className="text-center">
+                          <button
+                            onClick={() => handleViewReceiptDetails(receipt.id)}
+                            className="icon-button view-button"
+                          >
+                            <FaEye /> View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="pagination-container">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="pagination-button"
+              >
+                Previous
+              </button>
+              
+              <div className="pagination-numbers">
+                {getPageNumbers().map((pageNum, index) => (
+                  pageNum === '...' ? (
+                    <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                  ) : (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`pagination-number ${currentPage === pageNum ? 'active' : ''}`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                ))}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="pagination-button"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
-
 
       {showNotificationModal && (
         <NotificationModal
@@ -243,7 +418,7 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
         .receipt-history-container {
           font-family: 'Arial', sans-serif;
           padding: 20px;
-          max-width: 1500px; /* Increased max-width for better table display */
+          max-width: 1500px;
           margin: 20px auto;
           background-color: #f9f9f9;
           border-radius: 8px;
@@ -262,8 +437,8 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
         h3 {
           color: #555;
           margin-bottom: 15px;
-          border-bottom: 1px solid #eee; /* Added for section titles */
-          padding-bottom: 8px; /* Added for section titles */
+          border-bottom: 1px solid #eee;
+          padding-bottom: 8px;
         }
 
         .section-title {
@@ -273,14 +448,10 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
           font-size: 1.3em;
         }
 
-        .loading-message, .error-message {
+        .loading-message {
           text-align: center;
           padding: 20px;
           font-size: 1.2em;
-          color: #e74c3c;
-        }
-
-        .loading-message {
           color: #3498db;
         }
 
@@ -293,27 +464,190 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
           margin-bottom: 20px;
         }
 
-        .nav-button {
-          background-color: #6c757d;
-          color: white;
-          padding: 12px 25px;
+        /* Search Bar Styles */
+        .search-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+
+        .search-section {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          flex: 0 1 auto;
+          max-width: 600px;
+        }
+
+        .search-type-select {
+          padding: 12px 15px;
+          border: 2px solid #ddd;
+          border-radius: 8px;
+          font-size: 0.95em;
+          cursor: pointer;
+          background-color: white;
+          transition: border-color 0.3s ease;
+          min-width: 150px;
+        }
+
+        .search-type-select:focus {
+          outline: none;
+          border-color: #167bb9;
+        }
+
+        .search-input-wrapper {
+          position: relative;
+          flex: 1;
+          min-width: 250px;
+          max-width: 400px;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #999;
+          font-size: 1.1em;
+        }
+
+        .search-input {
+          width: 100%;
+          padding: 12px 45px 12px 45px;
+          border: 2px solid #ddd;
+          border-radius: 8px;
+          font-size: 1em;
+          transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+          outline: none;
+          border-color: #167bb9;
+        }
+
+        .clear-search-button {
+          position: absolute;
+          right: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
           border: none;
+          color: #999;
+          font-size: 1.2em;
+          cursor: pointer;
+          padding: 5px;
+          transition: color 0.2s ease;
+        }
+
+        .clear-search-button:hover {
+          color: #e74c3c;
+        }
+
+        .items-per-page {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.95em;
+          color: #555;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        .items-per-page select {
+          padding: 8px 12px;
+          border: 2px solid #ddd;
+          border-radius: 5px;
+          font-size: 1em;
+          cursor: pointer;
+          transition: border-color 0.3s ease;
+        }
+
+        .items-per-page select:focus {
+          outline: none;
+          border-color: #167bb9;
+        }
+
+        .results-summary {
+          text-align: center;
+          color: #666;
+          font-size: 0.95em;
+          margin-bottom: 15px;
+          padding: 10px;
+          background-color: #f5f5f5;
+          border-radius: 5px;
+        }
+
+        /* Pagination Styles */
+        .pagination-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 10px;
+          margin-top: 25px;
+          flex-wrap: wrap;
+        }
+
+        .pagination-button {
+          padding: 10px 20px;
+          border: 2px solid #167bb9;
+          background-color: white;
+          color: #167bb9;
           border-radius: 5px;
           cursor: pointer;
-          font-size: 1em;
-          display: inline-flex; /* Changed to inline-flex for better alignment */
-          align-items: center;
+          font-size: 0.95em;
+          font-weight: 500;
+          transition: all 0.3s ease;
+        }
+
+        .pagination-button:hover:not(:disabled) {
+          background-color: #167bb9;
+          color: white;
+        }
+
+        .pagination-button:disabled {
+          border-color: #ddd;
+          color: #ccc;
+          cursor: not-allowed;
+        }
+
+        .pagination-numbers {
+          display: flex;
           gap: 5px;
-          transition: background-color 0.3s ease;
-          margin-bottom: 20px;
+          align-items: center;
         }
 
-        .nav-button:hover {
-          background-color: #5a6268;
+        .pagination-number {
+          min-width: 40px;
+          height: 40px;
+          padding: 8px;
+          border: 2px solid #ddd;
+          background-color: white;
+          color: #555;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 0.95em;
+          transition: all 0.3s ease;
         }
 
-        .back-to-pos {
-          margin-right: auto; /* Push button to the left */
+        .pagination-number:hover {
+          border-color: #167bb9;
+          color: #167bb9;
+        }
+
+        .pagination-number.active {
+          background-color: #167bb9;
+          color: white;
+          border-color: #167bb9;
+          font-weight: bold;
+        }
+
+        .pagination-ellipsis {
+          padding: 8px;
+          color: #999;
+          font-size: 1.2em;
         }
 
         .receipt-details-card {
@@ -396,7 +730,7 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
           display: flex;
           gap: 15px;
           margin-top: 30px;
-          justify-content: flex-end; /* Align buttons to the right */
+          justify-content: flex-end;
         }
 
         .action-button {
@@ -463,11 +797,11 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
 
         .table-responsive {
           overflow-x: auto;
-          margin-top: 20px; /* Adjusted margin */
-          background: #fff; /* Added background for consistency */
-          border-radius: 8px; /* Added border-radius */
-          padding: 8px; /* Added padding */
-          max-height: calc(100vh - 200px); /* Adjusted for overall container */
+          margin-top: 20px;
+          background: #fff;
+          border-radius: 8px;
+          padding: 8px;
+          max-height: calc(100vh - 300px);
         }
 
         .icon-button {
@@ -479,7 +813,7 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
           padding: 5px;
           border-radius: 4px;
           transition: background-color 0.2s ease;
-          display: inline-flex; /* Ensures icon and text are aligned */
+          display: inline-flex;
           align-items: center;
           gap: 5px;
         }
@@ -492,34 +826,33 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
           background-color: #e6f7ff;
         }
 
-        /* Custom Modal Styles (copied from StockReport.js) */
         .custom-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
         }
 
         .custom-modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            color: #333;
+          background: white;
+          padding: 30px;
+          border-radius: 10px;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+          text-align: center;
+          width: 90%;
+          max-width: 400px;
+          color: #333;
         }
 
         .custom-modal-content p {
-            margin-bottom: 20px;
-            font-size: 1.1em;
+          margin-bottom: 20px;
+          font-size: 1.1em;
         }
 
         .error-message-text {
@@ -531,65 +864,80 @@ export default function ReceiptHistoryPage({ onGoBackToPOS, onPrintReceipt, onGo
         }
 
         .custom-modal-button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease;
+          background-color: #007bff;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 1em;
+          transition: background-color 0.3s ease;
         }
 
         .custom-modal-button:hover {
-            background-color: #0056b3;
-        }
-
-        .custom-modal-actions {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .custom-modal-actions .confirm-button {
-            background-color: #28a745;
-        }
-
-        .custom-modal-actions .confirm-button:hover {
-            background-color: #218838;
-        }
-
-        .custom-modal-actions .cancel-button {
-            background-color: #dc3545;
-        }
-
-        .custom-modal-actions .cancel-button:hover {
-            background-color: #c82333;
+          background-color: #0056b3;
         }
 
         @media (max-width: 768px) {
-          .nav-button {
-            width: 100%;
-            justify-content: center;
-            margin-bottom: 15px;
-          }
           .receipt-history-container {
             padding: 15px;
             margin: 10px auto;
           }
+
+          .search-container {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .search-section {
+            flex-direction: column;
+            max-width: 100%;
+            width: 100%;
+          }
+
+          .search-type-select {
+            width: 100%;
+          }
+
+          .search-input-wrapper {
+            min-width: 100%;
+            max-width: 100%;
+          }
+
+          .items-per-page {
+            justify-content: center;
+            width: 100%;
+          }
+
           .receipts-table th,
           .receipts-table td {
             padding: 8px;
             font-size: 0.9em;
           }
+
           .button-group {
             flex-direction: column;
             gap: 10px;
           }
+
           .action-button {
             width: 100%;
             justify-content: center;
+          }
+
+          .pagination-container {
+            gap: 5px;
+          }
+
+          .pagination-button {
+            padding: 8px 12px;
+            font-size: 0.85em;
+          }
+
+          .pagination-number {
+            min-width: 35px;
+            height: 35px;
+            font-size: 0.85em;
           }
         }
       `}</style>

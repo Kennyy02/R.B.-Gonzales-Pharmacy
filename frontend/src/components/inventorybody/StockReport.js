@@ -782,7 +782,7 @@ const StockManagement = () => {
         .stock-form, .category-form {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-          gap: 25px;
+          gap: 15px;
         }
 
         .stock-form input[type="text"],
@@ -1007,7 +1007,11 @@ const StockManagement = () => {
         }
 
         .product-table th, .product-table td {
+<<<<<<< HEAD
             padding: 12px 15px;
+=======
+            padding: 8px 10px;
+>>>>>>> a4d3a190b249f18a057120c04c6b4b16d2d104b3
             text-align: left;
             border-bottom: 1px solid #f0f0f0;
         }
@@ -1170,7 +1174,6 @@ const StockManagement = () => {
         .custom-modal-actions {
             display: flex;
             flex-direction: column;
-            gap: 15px;
             margin-top: 25px;
         }
 

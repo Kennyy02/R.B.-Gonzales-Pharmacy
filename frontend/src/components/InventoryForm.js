@@ -1080,6 +1080,7 @@ export default function InventoryForm() {
           text-align: left;
         }
         
+<<<<<<< HEAD
         
         /* Align table headers to match their column value alignment */
         .simple-cart-table thead th:nth-child(1),  .simple-cart-table thead td:nth-child(1) { width: 60%; text-align: left; }
@@ -1094,7 +1095,21 @@ export default function InventoryForm() {
         .simple-cart-table th:nth-child(3), .simple-cart-table td:nth-child(3) { width: 13%; text-align: right; }
         .simple-cart-table th:nth-child(4), .simple-cart-table td:nth-child(4) { width: 13%; text-align: right; }
         .simple-cart-table th:nth-child(5), .simple-cart-table td:nth-child(5) { width: 2%; text-align: center; }
+=======
+        /* Align table headers to match their column value alignment */
+.simple-cart-table thead th:nth-child(1) { width: 85%; text-align: left; }
+.simple-cart-table thead th:nth-child(2) { width: 21%; text-align: center; } /* QTY */
+.simple-cart-table thead th:nth-child(3) { width: 34%; text-align: right; }  /* PRICE */
+.simple-cart-table thead th:nth-child(4) { width: 34%; text-align: right; }  /* SUBTOTAL */
+.simple-cart-table thead th:nth-child(5) { width: 20%; text-align: center; }
+>>>>>>> a4d3a190b249f18a057120c04c6b4b16d2d104b3
 
+/* Column alignment and widths - Ensure the body cells align */
+.simple-cart-table td:nth-child(1) { width: 80%; text-align: left; }
+.simple-cart-table td:nth-child(2) { width: 20%; text-align: center; } /* QTY */
+.simple-cart-table td:nth-child(3) { width: 30%; text-align: right; }  /* PRICE */
+.simple-cart-table td:nth-child(4) { width: 30%; text-align: right; }  /* SUBTOTAL */
+.simple-cart-table td:nth-child(5) { width: 22%; text-align: center; }
 
         /* Clamp long item names to a single line with ellipsis */
         .simple-cart-table td:first-child {
@@ -1225,6 +1240,7 @@ export default function InventoryForm() {
         .ui-button-finish { background-color: #9E9E9E; color: #fff; }
         .ui-button-finish:hover { background-color: #757575; }
         .qty-controls.qty-readonly { min-width: 120px; justify-content: center; }
+        .qty-controls.qty-readonly {justify-content: center; }
         .qty-value {
           min-width: 24px;
           text-align: center;
