@@ -46,6 +46,7 @@ export default function InventoryForm() {
   const [currentReceipt, setCurrentReceipt] = useState(null);
   const scanInputRef = useRef(null);
   const [scanQuantity, setScanQuantity] = useState(1);
+  const [isVoidMode, setIsVoidMode] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -120,10 +121,8 @@ export default function InventoryForm() {
   };
 
   const handleRemoveFromCart = (productId) => {
-    const providedPassword = window.prompt('Enter password to remove item from cart:');
-    if (!providedPassword) return;
-    if (String(providedPassword) !== String(DELETE_PASSWORD || '')) {
-      alert('Incorrect password.');
+    if (!isVoidMode) {
+      alert('Enable Void to remove items.');
       return;
     }
     const itemToRemove = cart.find(item => item.id === productId);
@@ -140,10 +139,8 @@ export default function InventoryForm() {
   };
   
   const handleAdjustQuantity = (productId, delta) => {
-    const providedPassword = window.prompt('Enter password to adjust quantity:');
-    if (!providedPassword) return;
-    if (String(providedPassword) !== String(DELETE_PASSWORD || '')) {
-      alert('Incorrect password.');
+    if (!isVoidMode) {
+      alert('Enable Void to edit quantities.');
       return;
     }
 
@@ -290,6 +287,24 @@ export default function InventoryForm() {
     setShowPaymentModal(true);
   }, [cart.length]);
 
+  const handleToggleVoid = useCallback(() => {
+    if (!isVoidMode) {
+      const providedPassword = window.prompt('Enter password to enable Void mode:');
+      if (!providedPassword) return;
+      if (String(providedPassword) !== String(DELETE_PASSWORD || '')) {
+        alert('Incorrect password.');
+        return;
+      }
+      setIsVoidMode(true);
+    } else {
+      setIsVoidMode(false);
+    }
+  }, [isVoidMode]);
+
+  const handleFinishVoid = useCallback(() => {
+    setIsVoidMode(false);
+  }, []);
+  
   useEffect(() => {
     const handleKeyDown = (event) => {
       // Defensive check to prevent TypeError
@@ -1035,8 +1050,18 @@ export default function InventoryForm() {
           border-collapse: collapse;
           table-layout: fixed;
         }
-        .simple-cart-table thead { display: table-header-group; }
-        .simple-cart-table tbody { display: table-row-group; }
+        
+        .simple-cart-table thead { 
+          display: table-header-group; 
+        }
+        .simple-cart-table tbody { 
+          display: table-row-group; 
+        }
+        .simple-cart-table thead tr,
+        .simple-cart-table tbody tr { 
+          display: table-row; 
+          width: 100%;
+        }
         .simple-cart-table tr { display: table-row; }
 
         .simple-cart-table th,
@@ -1056,12 +1081,19 @@ export default function InventoryForm() {
         }
         
         
+        /* Align table headers to match their column value alignment */
+        .simple-cart-table thead th:nth-child(1),  .simple-cart-table thead td:nth-child(1) { width: 60%; text-align: left; }
+        .simple-cart-table thead th:nth-child(2),  .simple-cart-table thead td:nth-child(2) { width: 12%; text-align: center; }
+        .simple-cart-table thead th:nth-child(3),  .simple-cart-table thead td:nth-child(3) { width: 13%; text-align: right; }
+        .simple-cart-table thead th:nth-child(4),  .simple-cart-table thead td:nth-child(4) { width: 13%; text-align: right; }
+        .simple-cart-table thead th:nth-child(5),  .simple-cart-table thead td:nth-child(5) { width: 2%; text-align: center; }
+        
         /* Column alignment and widths */
-        .simple-cart-table th:nth-child(1), .simple-cart-table td:nth-child(1) { width: 52%; text-align: left; }
+        .simple-cart-table th:nth-child(1), .simple-cart-table td:nth-child(1) { width: 60%; text-align: left; }
         .simple-cart-table th:nth-child(2), .simple-cart-table td:nth-child(2) { width: 12%; text-align: center; }
-        .simple-cart-table th:nth-child(3), .simple-cart-table td:nth-child(3) { width: 16%; text-align: right; }
-        .simple-cart-table th:nth-child(4), .simple-cart-table td:nth-child(4) { width: 16%; text-align: right; }
-        .simple-cart-table th:nth-child(5), .simple-cart-table td:nth-child(5) { width: 4%; text-align: center; }
+        .simple-cart-table th:nth-child(3), .simple-cart-table td:nth-child(3) { width: 13%; text-align: right; }
+        .simple-cart-table th:nth-child(4), .simple-cart-table td:nth-child(4) { width: 13%; text-align: right; }
+        .simple-cart-table th:nth-child(5), .simple-cart-table td:nth-child(5) { width: 2%; text-align: center; }
 
 
         /* Clamp long item names to a single line with ellipsis */
@@ -1076,7 +1108,7 @@ export default function InventoryForm() {
           display: flex;
           flex-direction: column;
           position: relative;
-          min-height: 420px; /* Ensure cart area is always visible */
+          min-height: 420px;
         }
 
         /* Keep Print button visible */
@@ -1169,7 +1201,7 @@ export default function InventoryForm() {
         .qty-controls {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
+          gap: 20px;
           justify-content: center;
         }
         .qty-button {
@@ -1188,6 +1220,11 @@ export default function InventoryForm() {
         .qty-button:hover {
           background-color: #546E7A;
         }
+        .ui-button-void { background-color: #FF9800; color: #fff; }
+        .ui-button-void.active { background-color: #F57C00; }
+        .ui-button-finish { background-color: #9E9E9E; color: #fff; }
+        .ui-button-finish:hover { background-color: #757575; }
+        .qty-controls.qty-readonly { min-width: 120px; justify-content: center; }
         .qty-value {
           min-width: 24px;
           text-align: center;
@@ -1307,30 +1344,38 @@ export default function InventoryForm() {
                         <tr key={item.id}>
                           <td>{item.name}</td>
                           <td>
-                            <div className="qty-controls">
-                              <button
-                                className="qty-button"
-                                title="Decrease"
-                                onClick={() => handleAdjustQuantity(item.id, -1)}
-                              >
-                                <FaMinus />
-                              </button>
-                              <span className="qty-value">{item.quantity}</span>
-                              <button
-                                className="qty-button"
-                                title="Increase"
-                                onClick={() => handleAdjustQuantity(item.id, +1)}
-                              >
-                                <FaPlus />
-                              </button>
-                            </div>
-                          </td>
+                           {isVoidMode ? (
+                              <div className="qty-controls">
+                                <button
+                                  className="qty-button"
+                                  title="Decrease"
+                                  onClick={() => handleAdjustQuantity(item.id, -1)}
+                                >
+                                  <FaMinus />
+                                </button>
+                                <span className="qty-value">{item.quantity}</span>
+                                <button
+                                  className="qty-button"
+                                  title="Increase"
+                                  onClick={() => handleAdjustQuantity(item.id, +1)}
+                                >
+                                  <FaPlus />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="qty-controls qty-readonly">
+                                <span className="qty-value">{item.quantity}</span>
+                              </div>
+                            )}
+                              </td>
                           <td>₱{item.price.toFixed(2)}</td>
                           <td>₱{(item.price * item.quantity).toFixed(2)}</td>
                           <td>
-                            <button className="ui-button ui-button-clear" onClick={() => handleRemoveFromCart(item.id)}>
-                              <FaBan />
-                            </button>
+                            {isVoidMode ? (
+                              <button className="ui-button ui-button-clear" onClick={() => handleRemoveFromCart(item.id)}>
+                                <FaBan />
+                              </button>
+                            ) : null}
                           </td>
                         </tr>
                       ))}
@@ -1353,6 +1398,33 @@ export default function InventoryForm() {
 
         
           <div className="ui-payment-actions">
+            {!isVoidMode && (
+              <button
+                className={`ui-button ui-button-void`}
+                onClick={handleToggleVoid}
+                data-action="void"
+              >
+                Void
+              </button>
+            )}
+            {isVoidMode && (
+              <>
+                <button
+                  className={`ui-button ui-button-void active`}
+                  disabled
+                  data-action="void-active"
+                >
+                  Void
+                </button>
+                <button
+                  className="ui-button ui-button-finish"
+                  onClick={handleFinishVoid}
+                  data-action="finish-void"
+                >
+                  Finish
+                </button>
+              </>
+            )}
             <button className="ui-button ui-button-success" onClick={handlePrint} data-action="print" disabled={cart.length === 0}>
               <FaPrint /> Print
             </button>
@@ -1380,6 +1452,7 @@ export default function InventoryForm() {
         }}
         onSave={handleSaveReceipt}
       />
+      
     </>
   );
 }

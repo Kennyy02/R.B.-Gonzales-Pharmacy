@@ -426,7 +426,7 @@ const StockManagement = () => {
         </div>
       )}
 
-      {viewMode === 'view' && (
+            {viewMode === 'view' && (
         <div className="products-by-category card">
           <h2>All Products by Category</h2>
           <div className="search-bar">
@@ -448,39 +448,58 @@ const StockManagement = () => {
               return (
                 <div key={category} className="category-box">
                   <h3>{category} Products ({productsInCategory.length})</h3>
-                  <div className="product-grid">
-                    {productsInCategory.map(stock => (
-                      <div key={stock.id} className="product-card">
-                        <div className="product-image-container">
-                          {stock.imageUrl ? (
-                            <img
-                              src={stock.imageUrl}
-                              alt={stock.medicineId}
-                              className="product-image"
-                            />
-                          ) : (
-                            <div className="no-image-placeholder">No Image</div>
-                          )}
-                        </div>
-                        <div className="product-details">
-                          <p className="product-name">{stock.brandName} <span className="generic-name">({stock.medicineName})</span></p>
-                          <p className="product-price">Price: ₱{parseFloat(stock.price).toFixed(2)}</p>
-                          <p className="product-quantity">Quantity: {stock.quantity}</p>
-                          <p className="product-id">ID: {stock.medicineId}</p>
-                          <p className="product-supplier">Supplier: {stock.supplierName}</p>
-                          <p className="product-barcode">Barcode: {stock.barcode}</p>
-                          <p className="product-delivery-date">Delivered: {stock.deliveryDate ? new Date(stock.deliveryDate).toLocaleDateString() : 'N/A'}</p>
-                        </div>
-                        <div className="product-actions">
-                          <button onClick={() => handleEdit(stock.id)} title="Edit" className="icon-btn primary">
-                            <FaEdit /> Edit
-                          </button>
-                          <button onClick={() => handleDelete(stock.id)} title="Delete" className="icon-btn error">
-                            <FaTrash /> Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="table-container">
+                    <table className="product-table">
+                      <thead>
+                        <tr>
+                          <th>Image</th>
+                          <th>Medicine ID</th>
+                          <th>Brand Name</th>
+                          <th>Medicine Name</th>
+                          <th>Generic Name</th>
+                          <th>Supplier</th>
+                          <th>Barcode</th>
+                          <th>Price</th>
+                          <th>Quantity</th>
+                          <th>Delivery Date</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {productsInCategory.map(stock => (
+                          <tr key={stock.id}>
+                            <td className="image-cell">
+                              {stock.imageUrl ? (
+                                <img
+                                  src={stock.imageUrl}
+                                  alt={stock.medicineId}
+                                  className="table-product-image"
+                                />
+                              ) : (
+                                <div className="table-no-image">No Image</div>
+                              )}
+                            </td>
+                            <td>{stock.medicineId}</td>
+                            <td className="brand-name-cell">{stock.brandName}</td>
+                            <td>{stock.medicineName}</td>
+                            <td>{stock.genericName}</td>
+                            <td>{stock.supplierName}</td>
+                            <td>{stock.barcode}</td>
+                            <td className="price-cell">₱{parseFloat(stock.price).toFixed(2)}</td>
+                            <td className="quantity-cell">{stock.quantity}</td>
+                            <td>{stock.deliveryDate ? new Date(stock.deliveryDate).toLocaleDateString() : 'N/A'}</td>
+                            <td className="actions-cell">
+                              <button onClick={() => handleEdit(stock.id)} title="Edit" className="icon-btn primary table-btn">
+                                <FaEdit />
+                              </button>
+                              <button onClick={() => handleDelete(stock.id)} title="Delete" className="icon-btn error table-btn">
+                                <FaTrash />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               );
@@ -973,6 +992,90 @@ const StockManagement = () => {
           gap: 10px;
         }
 
+        .table-container {
+            overflow-x: auto; /* Makes the table scroll horizontally on small screens */
+            margin-top: 20px;
+        }
+.product-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.9em;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            overflow: hidden; /* Ensures border-radius applies to table content */
+        }
+
+        .product-table th, .product-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .product-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .product-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .product-table tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Image Cell Styles */
+        .image-cell {
+            width: 80px; /* Allocate a fixed, small width for the image */
+            text-align: center;
+            padding: 5px 8px; /* Reduce padding for a tighter fit */
+        }
+
+        /* Product Image Styles - **RESIZED** */
+        .table-product-image {
+            width: 50px; /* Fixed width for the image */
+            height: 50px; /* Fixed height for the image */
+            object-fit: cover; /* Ensures the image covers the area without distortion */
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            display: block;
+            margin: 0 auto; /* Center it in the small cell */
+        }
+
+        .table-no-image {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7em;
+            color: #888;
+            background-color: #eee;
+            border-radius: 6px;
+            margin: 0 auto;
+        }
+
+        /* Other Cell Styles */
+        .brand-name-cell { font-weight: 600; color: var(--primary-color); }
+        .price-cell { font-weight: 700; color: var(--success-color); }
+        .quantity-cell { font-weight: 600; color: var(--danger-color); }
+        
+        .actions-cell {
+            width: 100px; /* Keep actions cell fixed width */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .table-btn {
+          padding: 6px 10px;
+          font-size: 0.9em;
+          border-radius: 6px;
+        }
         .search-bar {
           display: flex;
           align-items: center;
